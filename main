@@ -4,7 +4,7 @@ import math as m
 from translate import Translator
 from config import TOKEN
 import datetime
-
+import requests
 
 bot = telebot.TeleBot(TOKEN)
 
@@ -18,7 +18,9 @@ def start(message):
 def helping(message):
     bot.send_message(message.chat.id, 'Я могу: \n   искать в википедии (функция /search) '
                                       '\n   выполнять математические действия (функция /calc)'
-                                      '\n   переводить тексты (функция /translate)')
+                                      '\n   переводить тексты (функция /translate)'
+                                      '\n   показывать погоду (функция /weather)'
+                                      '\n   создавать таймер (функция /timer)')
 
 
 @bot.message_handler(commands=['search'], content_types=['text'])
@@ -62,13 +64,32 @@ def tranlators(message):
         translation = translator.translate((' '.join(requests_in_translate[3:])).lower())
         bot.send_message(message.chat.id, translation)
     except Exception:
-        bot.send_message(message.chat.id, 'Проверьте правильность написания примера.'
+        bot.send_message(message.chat.id, 'Проверьте правильность написания.    '
                                           'Пример ввода: /translate en ru telegram.'
                                           '\nИспользуются стандартные сокращения языков'
                                           ' на английском языке, например:\n'
                                           'en - английский\n'
                                           'ru - русский\n'
                                           'и так далее.')
+
+
+@bot.message_handler(commands=['weather'], content_types=['text'])
+def pogoda(message):
+    try:
+        requests_weather = message.text.split()
+        response = requests.get(f"http://api.openweathermap.org/data/2.5/weather?q={requests_weather[1]},"
+                                f"{requests_weather[2]}&APPID=375945b5a4f84b8b46a5fd41b8d5f519",
+                                params={'units': 'metric'})
+        ans = response.content.decode('UTF-8')
+        answer = ans.split(",")
+        translator = Translator(to_lang=requests_weather[3])
+        translation = translator.translate(answer[4][15:-1].lower())
+        bot.send_message(message.chat.id, f'{translation} \nТемпература: {answer[7][16:]}'
+                                          f' \nВлажность {answer[12][11:]} \nСкорость ветра {answer[16][16:]}')
+    except Exception:
+        bot.send_message(message.chat.id, "Проверьте корректность написания \nПример ввода: "
+                                          "/weather Moscow ru <язык на которм будет текст>")
+
 
 
 list_of_timers = []
