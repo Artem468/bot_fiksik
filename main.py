@@ -9,39 +9,68 @@ from config import START_MESSAGE
 
 bot = telebot.TeleBot(TOKEN)
 LANGUAGE = 'ru'
-list_of_languages = ['en', 'ru', 'fr', 'es', 'it', 'zh', 'ja', 'ko', 'ar', 'hi', 'pt']
+LIST_OF_LANGUAGES = ['en', 'ru', 'fr', 'es', 'it', 'zh', 'ja', 'ko', 'ar', 'hi', 'pt', 'de', 'pl']
+
+LOCATION = 'Kaliningrad ru'
 
 
 @bot.message_handler(commands=['start'])
 def start(message):
     global LANGUAGE
     translator = Translator(from_lang='ru', to_lang=LANGUAGE)
-    translation = translator.translate((START_MESSAGE).lower())
+    translation = translator.translate((START_MESSAGE))
     bot.send_message(message.chat.id, translation)
 
 
 @bot.message_handler(commands=['help'])
 def helping(message):
-    bot.send_message(message.chat.id, 'Я могу: \n   искать в википедии (функция /search) '
+    bot.send_message(message.chat.id, 'Я могу: '
+                                      '\n   установить язык (функция /language)'
+                                      '\n   искать в википедии (функция /search)'
                                       '\n   выполнять математические действия (функция /calc)'
                                       '\n   переводить тексты (функция /translate)'
                                       '\n   показывать погоду (функция /weather)'
                                       '\n   создавать таймер (функция /timer)')
 
 
+@bot.message_handler(commands=['location'], content_types=['text'])
+def select_location(message):
+    global LOCATION
+    try:
+        request_location = message.text.split()
+        if len(request_location) == 3:
+            if request_location[2] in LIST_OF_LANGUAGES:
+                LOCATION = ' '.join(request_location[1:])
+                bot.send_message(message.chat.id, f'Местоположение сменено на <{LOCATION}>')
+            else:
+                raise Exception
+        else:
+            raise SyntaxError
+    except SyntaxError:
+        bot.send_message(message.chat.id, f'Не хватает данных для запроса. \n'
+                                          f'Пример ввода: /location Moscow ru'
+                                          f'\nДоступные сокращения стран: {", ".join(LIST_OF_LANGUAGES)}')
+    except Exception:
+        bot.send_message(message.chat.id, f'Извините, этой локации нет в нашей базе. \n'
+                                          f'Пример ввода: /location Moscow ru'
+                                          f'\n Доступные сокращения стран: {", ".join(LIST_OF_LANGUAGES)}')
+
 @bot.message_handler(commands=['language'], content_types=['text'])
 def select_language(message):
-    global LANGUAGE, list_of_languages
+    global LANGUAGE, LIST_OF_LANGUAGES
     try:
         request_language = message.text.split()[1]
-        if request_language in list_of_languages:
+        if request_language in LIST_OF_LANGUAGES:
             LANGUAGE = request_language
+            translator = Translator(from_lang='ru', to_lang=LANGUAGE)
+            translation = translator.translate(f'Язык сменён на <{LANGUAGE}>')
+            bot.send_message(message.chat.id, translation)
         else:
             raise Exception
     except Exception:
         bot.send_message(message.chat.id, f'Извините, этого языка нет в нашей базе. \n'
                                           f'Пример ввода: /language ru'
-                                          f'\n Доступные языки {", ".join(list_of_languages)}')
+                                          f'\n Доступные языки {", ".join(LIST_OF_LANGUAGES)}')
 
 
 @bot.message_handler(commands=['search'], content_types=['text'])
@@ -103,13 +132,13 @@ def weather_now(message):
                                 params={'units': 'metric'})
         ans = response.content.decode('UTF-8')
         answer = ans.split(",")
-        translator = Translator(to_lang=requests_weather[3])
+        translator = Translator(to_lang=LANGUAGE)
         translation = translator.translate(answer[4][15:-1].lower())
         bot.send_message(message.chat.id, f'{translation.capitalize()} \nТемпература: {answer[7][15:]}'
                                           f' \nВлажность: {answer[12][11:]} \nСкорость ветра: {answer[16][16:]}')
     except Exception:
-        bot.send_message(message.chat.id, "Проверьте корректность написания \nПример ввода: "
-                                          "/weather Moscow ru <язык на которм будет текст>")
+        bot.send_message(message.chat.id, 'Проверьте корректность написания \nПример ввода: '
+                                          '/weather Moscow ru')
 
 
 list_of_timers = []
