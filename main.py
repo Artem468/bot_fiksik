@@ -11,8 +11,7 @@ from config import START_MESSAGE, HELP_MESSAGE, CALCULATOR_MESSAGE, WEATHER_MESS
 
 bot = telebot.TeleBot(TOKEN)
 LANGUAGE = 'ru'
-list_of_languages = ['en', 'ru', 'fr', 'es', 'it', 'zh', 'ja', 'ko', 'ar', 'hi', 'pt', 'de', 'pl']
-
+list_of_languages = ['en', 'ru', 'fr', 'es', 'it', 'zh', 'ja', 'ko', 'ar', 'hi', 'pt', 'de', 'pl', 'uk']
 
 
 @bot.message_handler(commands=['start'])
@@ -148,7 +147,7 @@ def weather_now(message):
 list_of_timers = []
 
 
-@bot.message_handler(commands=['create_timer'], content_types=['text'])
+@bot.message_handler(commands=['set_timer'], content_types=['text'])
 def timer(message):
     translator = Translator(from_lang='ru', to_lang=LANGUAGE)
     try:
