@@ -1,4 +1,4 @@
-TOKEN = '1719068703:AAEJ0LZw-N9bJAyOZ1pN2iHF3RytUtJ8ZpM'
+TOKEN = 'YOUR TOKEN'
 
 START_MESSAGE = 'Привет, я бот-фиксик! Для работы со мной используй функции, описанные в - /help. \n' \
                 'Для смены языка напишите /language " язык в сокращенной форме " '
