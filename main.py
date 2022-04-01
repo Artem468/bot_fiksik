@@ -9,9 +9,10 @@ from config import START_MESSAGE, HELP_MESSAGE, CALCULATOR_MESSAGE, WEATHER_MESS
     TRANSLATE_MESSAGE, SEARCH_MESSAGE_WRONG_WORD, SEARCH_MESSAGE_WRONG_FORMAT, \
     SELECT_LANGUAGE, TEMPERATURE, HUMIDITY, SPEED_WIND, TIMER_IS_OVER, TIMER_MESSAGE, SELECT_LANG
 
+
 bot = telebot.TeleBot(TOKEN)
 LANGUAGE = 'ru'
-list_of_languages = ['en', 'ru', 'fr', 'es', 'it', 'zh', 'ja', 'ko', 'ar', 'hi', 'pt', 'de', 'pl', 'uk']
+list_of_languages = ['en', 'ru', 'fr', 'es', 'it', 'zh', 'ja', 'ko', 'ar', 'hi', 'pt', 'de', 'pl']
 
 
 @bot.message_handler(commands=['start'])
@@ -67,7 +68,7 @@ def search_in_wikipedia(message):
     try:
         request_in_wiki = message.text.split()
         wikipedia.set_lang(LANGUAGE)
-        bot.send_message(message.chat.id, wikipedia.summary(request_in_wiki[1]))
+        bot.send_message(message.chat.id, wikipedia.summary(' '.join(request_in_wiki[1:])))
     except Exception:
         try:
             if LANGUAGE == 'ru':
@@ -126,7 +127,8 @@ def weather_now(message):
                                 params={'units': 'metric'})
         ans = response.content.decode('UTF-8')
         answer = ans.split(",")
-        clouds = translator.translate(answer[4][15:-1])
+        translator_for_cl = Translator(from_lang='en', to_lang=LANGUAGE)
+        clouds = translator_for_cl.translate(answer[4][15:-1])
         if LANGUAGE == 'ru':
             weather_atm = f'{clouds} \n{TEMPERATURE}: {answer[7][15:]} ' \
                           f'\n{HUMIDITY}: {answer[12][11:]} \n{SPEED_WIND}: {answer[16][16:]} '
