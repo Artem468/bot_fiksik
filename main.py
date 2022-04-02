@@ -221,4 +221,10 @@ def timer(message):
             bot.send_message(message.chat.id, translation)
 
 
+@bot.message_handler(commands='siuuu')
+def siu(message):
+    video = open('data/suiii.mp4', 'rb')
+    bot.send_video(message.chat.id, video)
+
+
 bot.polling(none_stop=True, interval=0)
