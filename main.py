@@ -6,6 +6,8 @@ from config import TOKEN
 import datetime
 import requests
 import dpath.util as dp
+from cities import some_cities
+from random import choice
 import json
 from config import START_MESSAGE, HELP_MESSAGE, CALCULATOR_MESSAGE, WEATHER_MESSAGE, \
     TRANSLATE_MESSAGE, SEARCH_MESSAGE_WRONG_WORD, SEARCH_MESSAGE_WRONG_FORMAT, \
@@ -14,6 +16,8 @@ from config import START_MESSAGE, HELP_MESSAGE, CALCULATOR_MESSAGE, WEATHER_MESS
 
 bot = telebot.TeleBot(TOKEN)
 list_of_languages = ['en', 'pl', 'fr', 'es', 'it', 'zh', 'ja', 'ko', 'ar', 'hi', 'pt', 'de', 'ru']
+db = []
+last_mess = ''
 
 
 @bot.message_handler(commands=['start'])
@@ -247,6 +251,57 @@ def timer(message):
 def siu(message):
     video = open('data/suiii.mp4', 'rb')
     bot.send_video(message.chat.id, video)
+
+
+@bot.message_handler(commands='cities')
+def cities_game(message):
+    global last_mess, db
+    try:
+        city = []
+        user_city = message.text.split()[1:]
+        for word in user_city:
+            city.append(word.capitalize())
+        user_city = ' '.join(city)
+        if last_mess == '':
+            last_mess = user_city[0].lower()
+        maybe_ans = []
+        print(db)
+        if user_city != 'Stop':
+            if user_city in some_cities:
+                if user_city in db:
+                    raise MemoryError
+                if user_city[0].lower() != last_mess:
+                    raise EOFError
+                else:
+                    for i in some_cities:
+                        if i[0].lower() == user_city[-1]:
+                            maybe_ans.append(i)
+                    answer = choice(maybe_ans)
+                    bot.send_message(message.chat.id, answer)
+                    last_mess = answer[-1].lower()
+                    db.append(user_city)
+                    db.append(answer)
+                    bot.send_message(message.chat.id, 'Введите город: ')
+            else:
+                raise SyntaxError
+        else:
+            bot.send_message(message.chat.id, 'Хорошо! До встречи')
+            db = []
+            last_mess = ''
+            return
+    except SyntaxError:
+        bot.send_message(message.chat.id, 'Я не знаю такого города\nПопробуй еще раз:')
+
+    except MemoryError:
+        bot.send_message(message.chat.id, 'Этот город уже был использован\nПопробуй еще раз:')
+
+    except EOFError:
+        bot.send_message(message.chat.id, 'Ваш город начинается не на ту букву\nПопробуй еще раз:')
+
+    except IndexError:
+        bot.send_message(message.chat.id, 'Неверный формат ввода.\n'
+                                          'Пример написания: /cities Moscow.\n'
+                                          'Все города пишутся на английском языке')
 
 
 bot.polling(none_stop=True, interval=0)
