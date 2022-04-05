@@ -13,7 +13,7 @@ from config import START_MESSAGE, HELP_MESSAGE, CALCULATOR_MESSAGE, WEATHER_MESS
 
 
 bot = telebot.TeleBot(TOKEN)
-list_of_languages = ['en', 'ru', 'fr', 'es', 'it', 'zh', 'ja', 'ko', 'ar', 'hi', 'pt', 'de', 'pl']
+list_of_languages = ['en', 'pl', 'fr', 'es', 'it', 'zh', 'ja', 'ko', 'ar', 'hi', 'pt', 'de', 'ru']
 
 
 @bot.message_handler(commands=['start'])
