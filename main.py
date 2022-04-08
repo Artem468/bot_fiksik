@@ -177,6 +177,9 @@ def timer(message):
                         text += f'{str(seconds)} секунд'
                 text.strip()
                 translate_print(message.chat.id, text)
+                if your_lang(message.chat.id)[0] == 'en':
+                    gif = open("data/I'll be back.gif", 'rb')
+                    bot.send_video(message.chat.id, gif)
                 now = datetime.datetime.now()
                 timer = datetime.timedelta(hours=hours, minutes=minutes, seconds=seconds)
                 list_of_timers.append(str(now + timer)[:-7])
