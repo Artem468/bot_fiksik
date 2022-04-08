@@ -1,6 +1,6 @@
 import telebot
 import wikipedia
-import math as m
+from math import *
 from translate import Translator
 from config import TOKEN
 import datetime
@@ -9,15 +9,19 @@ import dpath.util as dp
 from cities import some_cities
 from random import choice
 import json
-from config import START_MESSAGE, HELP_MESSAGE, CALCULATOR_MESSAGE, WEATHER_MESSAGE, \
-    TRANSLATE_MESSAGE, SEARCH_MESSAGE_WRONG_WORD, SEARCH_MESSAGE_WRONG_FORMAT, \
-    SELECT_LANGUAGE, TEMPERATURE, HUMIDITY, SPEED_WIND, TIMER_IS_OVER, TIMER_MESSAGE, SELECT_LANG
-
+from config import *
 
 bot = telebot.TeleBot(TOKEN)
 list_of_languages = ['en', 'pl', 'fr', 'es', 'it', 'zh', 'ja', 'ko', 'ar', 'hi', 'pt', 'de', 'ru']
-db = []
-last_mess = ''
+
+
+def translate_print(id, text):
+    translator = Translator(from_lang='ru', to_lang=your_lang(id)[0])
+    if your_lang(id)[0] == 'ru':
+        bot.send_message(id, text)
+    else:
+        translation = translator.translate(text)
+        bot.send_message(id, translation)
 
 
 @bot.message_handler(commands=['start'])
@@ -26,29 +30,18 @@ def start(message):
         your = your_lang(message.chat.id)[0]
     except Exception:
         choose_lang(message.chat.id, 'ru')
-    translator = Translator(from_lang='ru', to_lang=your_lang(message.chat.id)[0])
-    if your_lang(message.chat.id)[0] == 'ru':
-        bot.send_message(message.chat.id, START_MESSAGE)
-    else:
-        translation = translator.translate(START_MESSAGE)
-        bot.send_message(message.chat.id, translation)
+    translate_print(message.chat.id, START_MESSAGE)
 
 
 @bot.message_handler(commands=['help'])
 def helping(message):
-    translator = Translator(from_lang='ru', to_lang=your_lang(message.chat.id)[0])
-    if your_lang(message.chat.id)[0] == 'ru':
-        bot.send_message(message.chat.id, HELP_MESSAGE)
-    else:
-        translation = translator.translate(HELP_MESSAGE)
-        bot.send_message(message.chat.id, translation)
+    translate_print(message.chat.id, HELP_MESSAGE)
 
 
 def choose_lang(id, lang):
     with open('data/data_base.json', 'r+') as file:
         your_lang = {}
         data = json.loads(file.read())
-        print(type(file))
         your_lang[str(id)] = lang
         data_lang = {**data, **your_lang}
         print(data_lang)
@@ -71,80 +64,50 @@ def select_language(message):
         request_language = message.text.split()[1]
         if request_language in list_of_languages:
             choose_lang(message.chat.id, request_language)
-
-            if your_lang(message.chat.id)[0] == 'ru':
-                bot.send_message(message.chat.id, f'{SELECT_LANG} {your_lang(message.chat.id)[0]}')
-            else:
-                translator = Translator(from_lang='ru', to_lang=your_lang(message.chat.id)[0])
-                translation = translator.translate(SELECT_LANG)
-                bot.send_message(message.chat.id, f'{translation.capitalize()} {your_lang(message.chat.id)[0]}')
+            answer = f'{SELECT_LANG} {your_lang(message.chat.id)[0]}'
+            translate_print(message.chat.id, answer)
         else:
             raise Exception
     except Exception:
-        if your_lang(message.chat.id)[0] == 'ru':
-            bot.send_message(message.chat.id, f'{SELECT_LANGUAGE} {", ".join(list_of_languages)}')
-        else:
-            translator = Translator(from_lang='ru', to_lang=your_lang(message.chat.id)[0])
-            translation = translator.translate(SELECT_LANGUAGE)
-            bot.send_message(message.chat.id, f'{translation} {", ".join(list_of_languages)}')
+        answer = f'{SELECT_LANGUAGE} {", ".join(list_of_languages)}'
+        translate_print(message.chat.id, answer)
 
 
 @bot.message_handler(commands=['search'], content_types=['text'])
 def search_in_wikipedia(message):
-    translator = Translator(from_lang='ru', to_lang=your_lang(message.chat.id)[0])
     try:
         request_in_wiki = message.text.split()
         wikipedia.set_lang(your_lang(message.chat.id)[0])
         bot.send_message(message.chat.id, wikipedia.summary(' '.join(request_in_wiki[1:])))
     except Exception:
         try:
-            if your_lang(message.chat.id)[0] == 'ru':
-                bot.send_message(message.chat.id, f'{SEARCH_MESSAGE_WRONG_WORD.capitalize()} '
-                                                  f'{wikipedia.suggest(request_in_wiki[1])}')
-            else:
-                translation = translator.translate((SEARCH_MESSAGE_WRONG_WORD))
-                bot.send_message(message.chat.id, f'{translation.capitalize()} '
-                                                  f'{wikipedia.suggest(request_in_wiki[1])}')
+            answer = f'{SEARCH_MESSAGE_WRONG_WORD.capitalize()} {wikipedia.suggest(request_in_wiki[1])}'
+            translate_print(message.chat.id, answer)
         except Exception:
-            if your_lang(message.chat.id)[0] == 'ru':
-                bot.send_message(message.chat.id, SEARCH_MESSAGE_WRONG_FORMAT.capitalize())
-            else:
-                translation = translator.translate(SEARCH_MESSAGE_WRONG_FORMAT)
-                bot.send_message(message.chat.id, translation.capitalize())
+            translate_print(message.chat.id, SEARCH_MESSAGE_WRONG_FORMAT)
 
 
 @bot.message_handler(commands=['calc'], content_types=['text'])
 def calculator(message):
-    translator = Translator(from_lang='ru', to_lang=your_lang(message.chat.id)[0])
     try:
         bot.send_message(message.chat.id, eval(str(message.text[5:])))
     except Exception:
-        if your_lang(message.chat.id)[0] == 'ru':
-            bot.send_message(message.chat.id, CALCULATOR_MESSAGE)
-        else:
-            translation = translator.translate(CALCULATOR_MESSAGE)
-            bot.send_message(message.chat.id, translation)
+        translate_print(message.chat.id, CALCULATOR_MESSAGE)
 
 
 @bot.message_handler(commands=['translate'], content_types=['text'])
 def tranlators(message):
-    translator = Translator(from_lang='ru', to_lang=your_lang(message.chat.id)[0])
     try:
         requests_in_translate = message.text.split()
         perevod = Translator(from_lang=requests_in_translate[1], to_lang=requests_in_translate[2])
         translation = perevod.translate((' '.join(requests_in_translate[3:])))
         bot.send_message(message.chat.id, translation)
     except Exception:
-        if your_lang(message.chat.id)[0] == 'ru':
-            bot.send_message(message.chat.id, TRANSLATE_MESSAGE.capitalize())
-        else:
-            translation = translator.translate(TRANSLATE_MESSAGE)
-            bot.send_message(message.chat.id, translation.capitalize())
+        translate_print(message.chat.id, TRANSLATE_MESSAGE)
 
 
 @bot.message_handler(commands=['weather'], content_types=['text'])
 def weather_now(message):
-    translator = Translator(from_lang='ru', to_lang=your_lang(message.chat.id)[0])
     try:
         requests_weather = message.text.split()
         response = requests.get(f"http://api.openweathermap.org/data/2.5/weather?q={requests_weather[1]},"
@@ -154,22 +117,11 @@ def weather_now(message):
         answer = ans.split(",")
         translator_for_cl = Translator(from_lang='en', to_lang=your_lang(message.chat.id)[0])
         clouds = translator_for_cl.translate(answer[4][15:-1])
-        if your_lang(message.chat.id)[0] == 'ru':
-            weather_atm = f'{clouds.capitalize()} \n{TEMPERATURE}: {answer[7][15:]} ' \
-                          f'\n{HUMIDITY}: {answer[12][11:]} \n{SPEED_WIND}: {answer[16][16:]} '
-        else:
-            temp = translator.translate(TEMPERATURE)
-            hum = translator.translate(HUMIDITY)
-            sp_wind = translator.translate(SPEED_WIND)
-            weather_atm = f'{clouds.capitalize()} \n{temp}: {answer[7][15:]}' \
-                          f' \n{hum}: {answer[12][11:]} \n{sp_wind}: {answer[16][16:]} '
-        bot.send_message(message.chat.id, weather_atm)
+        weather_atm = f'{clouds.capitalize()} \n{TEMPERATURE}: {answer[7][15:]} ' \
+                      f'\n{HUMIDITY}: {answer[12][11:]} \n{SPEED_WIND}: {answer[16][16:]} '
+        translate_print(message.chat.id, weather_atm)
     except Exception:
-        if your_lang(message.chat.id)[0] == 'ru':
-            bot.send_message(message.chat.id, WEATHER_MESSAGE)
-        else:
-            translation = translator.translate(WEATHER_MESSAGE)
-            bot.send_message(message.chat.id, translation)
+        translate_print(message.chat.id, WEATHER_MESSAGE)
 
 
 list_of_timers = []
@@ -177,7 +129,6 @@ list_of_timers = []
 
 @bot.message_handler(commands=['set_timer'], content_types=['text'])
 def timer(message):
-    translator = Translator(from_lang='ru', to_lang=your_lang(message.chat.id)[0])
     try:
         hours = 0
         minutes = 0
@@ -229,22 +180,14 @@ def timer(message):
                 now = datetime.datetime.now()
                 timer = datetime.timedelta(hours=hours, minutes=minutes, seconds=seconds)
                 list_of_timers.append(str(now + timer)[:-7])
-                if your_lang(message.chat.id)[0] == 'ru':
-                    translation = TIMER_IS_OVER
-                else:
-                    translation = translator.translate(TIMER_IS_OVER)
                 while True:
                     if str(datetime.datetime.now())[:-7] in list_of_timers:
                         time = list_of_timers.index(str(datetime.datetime.now())[:-7])
-                        bot.send_message(message.chat.id, translation)
+                        translate_print(message.chat.id, TIMER_IS_OVER)
                         del list_of_timers[time]
                         break
     except Exception:
-        if your_lang(message.chat.id)[0] == 'ru':
-            bot.send_message(message.chat.id, TIMER_MESSAGE)
-        else:
-            translation = translator.translate(TIMER_MESSAGE)
-            bot.send_message(message.chat.id, translation)
+        translate_print(message.chat.id, TIMER_MESSAGE)
 
 
 @bot.message_handler(commands='siuuu')
@@ -253,22 +196,62 @@ def siu(message):
     bot.send_video(message.chat.id, video)
 
 
+def update_city(id, city):
+    with open('data/data_game_cities.json', 'r+') as file:
+        your_city = {}
+        your_city[str(id)] = []
+        data = json.loads(file.read())
+        try:
+            for i in data[str(id)]:
+                your_city[str(id)].append(i)
+            your_city[str(id)].append(city)
+        except Exception:
+            your_city[str(id)].append(city)
+        data_city = {**data, **your_city}
+        print(data_city)
+
+    with open('data/data_game_cities.json', 'w') as zapis:
+        json.dump(data_city, zapis, indent=4)
+
+
+def use_city(id):
+    with open('data/data_game_cities.json') as file:
+        try:
+            dict = json.load(file)
+            values = dict[str(id)]
+            return values
+        except Exception:
+            return []
+
+
+def del_cities(id):
+    with open('data/data_game_cities.json', 'r+') as file:
+        your_city = {}
+        your_city[str(id)] = []
+        data = json.loads(file.read())
+        data_city = {**data, **your_city}
+        print(data_city)
+
+    with open('data/data_game_cities.json', 'w') as zapis:
+        json.dump(data_city, zapis, indent=4)
+
+
 @bot.message_handler(commands='cities')
 def cities_game(message):
-    global last_mess, db
     try:
         city = []
         user_city = message.text.split()[1:]
         for word in user_city:
             city.append(word.capitalize())
         user_city = ' '.join(city)
-        if last_mess == '':
+        if use_city(message.chat.id) == []:
             last_mess = user_city[0].lower()
+        else:
+            last_mess = use_city(message.chat.id)[-1][-1]
         maybe_ans = []
-        print(db)
         if user_city != 'Stop':
             if user_city in some_cities:
-                if user_city in db:
+                if user_city in use_city(message.chat.id):
                     raise MemoryError
                 if user_city[0].lower() != last_mess:
                     raise EOFError
@@ -278,30 +261,26 @@ def cities_game(message):
                             maybe_ans.append(i)
                     answer = choice(maybe_ans)
                     bot.send_message(message.chat.id, answer)
-                    last_mess = answer[-1].lower()
-                    db.append(user_city)
-                    db.append(answer)
-                    bot.send_message(message.chat.id, 'Введите город: ')
+                    update_city(message.chat.id, user_city)
+                    update_city(message.chat.id, answer)
+                    translate_print(message.chat.id, ENTER_CITY)
             else:
                 raise SyntaxError
         else:
-            bot.send_message(message.chat.id, 'Хорошо! До встречи')
-            db = []
-            last_mess = ''
+            translate_print(message.chat.id, BYE_MESSAGE)
+            del_cities(message.chat.id)
             return
     except SyntaxError:
-        bot.send_message(message.chat.id, 'Я не знаю такого города\nПопробуй еще раз:')
+        translate_print(message.chat.id, UNKNOW_CITY)
 
     except MemoryError:
-        bot.send_message(message.chat.id, 'Этот город уже был использован\nПопробуй еще раз:')
+        translate_print(message.chat.id, CITY_USED)
 
     except EOFError:
-        bot.send_message(message.chat.id, 'Ваш город начинается не на ту букву\nПопробуй еще раз:')
+        translate_print(message.chat.id, WRONG_LETTER)
 
     except IndexError:
-        bot.send_message(message.chat.id, 'Неверный формат ввода.\n'
-                                          'Пример написания: /cities Moscow.\n'
-                                          'Все города пишутся на английском языке')
+        translate_print(message.chat.id, GAME_CITY_MESSAGE)
 
 
 bot.polling(none_stop=True, interval=0)
