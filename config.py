@@ -1,4 +1,4 @@
-TOKEN = '5204899783:AAH-zQc680vA7TnHQsMz07JMGiihxj2Nxzo'
+TOKEN = 'YOUR TOKEN'
 
 
 START_MESSAGE = 'Привет, я бот-фиксик! Для работы со мной используй функции, описанные в - /help. \n' \
