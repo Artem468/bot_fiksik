@@ -30,6 +30,10 @@ def start(message):
         your = your_lang(message.chat.id)[0]
     except Exception:
         choose_lang(message.chat.id, 'ru')
+    keyboard = telebot.types.ReplyKeyboardMarkup(True)
+    keyboard.row('/help', '/language', '/search', '/calc')
+    keyboard.row('/translate', '/weather', '/set_timer', '/cities')
+    bot.send_message(message.chat.id, 'тут будет картинОЧКА', reply_markup=keyboard)
     translate_print(message.chat.id, START_MESSAGE)
 
 
