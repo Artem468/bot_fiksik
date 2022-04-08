@@ -172,11 +172,7 @@ def timer(message):
                     if seconds >= 5:
                         text += f'{str(seconds)} секунд'
                 text.strip()
-                if your_lang(message.chat.id)[0] == 'ru':
-                    bot.send_message(message.chat.id, text)
-                else:
-                    translation = translator.translate(text)
-                    bot.send_message(message.chat.id, translation)
+                translate_print(message.chat.id, text)
                 now = datetime.datetime.now()
                 timer = datetime.timedelta(hours=hours, minutes=minutes, seconds=seconds)
                 list_of_timers.append(str(now + timer)[:-7])
@@ -271,7 +267,7 @@ def cities_game(message):
             del_cities(message.chat.id)
             return
     except SyntaxError:
-        translate_print(message.chat.id, UNKNOW_CITY)
+        translate_print(message.chat.id, UNKNOWN_CITY)
 
     except MemoryError:
         translate_print(message.chat.id, CITY_USED)
