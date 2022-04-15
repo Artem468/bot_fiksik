@@ -7,9 +7,12 @@ import datetime
 import requests
 import dpath.util as dp
 from cities import some_cities
-from random import choice
+from random import choice, randint
 import json
 from config import *
+import easyocr
+import os
+
 
 bot = telebot.TeleBot(TOKEN)
 list_of_languages = ['en', 'pl', 'fr', 'es', 'it', 'zh', 'ja', 'ko', 'ar', 'hi', 'pt', 'de', 'ru']
@@ -31,7 +34,7 @@ def start(message):
     except Exception:
         choose_lang(message.chat.id, 'ru')
     keyboard = telebot.types.ReplyKeyboardMarkup(True)
-    keyboard.row('/help', '/language', '/search', '/calc')
+    keyboard.row('/help', '/language', '/search', '/calc', '/random')
     keyboard.row('/translate', '/weather', '/set_timer', '/cities')
     bot.send_message(message.chat.id, 'тут будет картинОЧКА', reply_markup=keyboard)
     translate_print(message.chat.id, START_MESSAGE)
@@ -176,10 +179,11 @@ def timer(message):
                     if seconds >= 5:
                         text += f'{str(seconds)} секунд'
                 text.strip()
-                translate_print(message.chat.id, text)
-                if your_lang(message.chat.id)[0] == 'en':
-                    gif = open("data/I'll be back.gif", 'rb')
-                    bot.send_video(message.chat.id, gif)
+                if your_lang(message.chat.id)[0] == 'ru':
+                    bot.send_message(message.chat.id, text)
+                else:
+                    translation = translator.translate(text)
+                    bot.send_message(message.chat.id, translation)
                 now = datetime.datetime.now()
                 timer = datetime.timedelta(hours=hours, minutes=minutes, seconds=seconds)
                 list_of_timers.append(str(now + timer)[:-7])
@@ -262,11 +266,16 @@ def cities_game(message):
                     for i in some_cities:
                         if i[0].lower() == user_city[-1]:
                             maybe_ans.append(i)
-                    answer = choice(maybe_ans)
-                    bot.send_message(message.chat.id, answer)
-                    update_city(message.chat.id, user_city)
-                    update_city(message.chat.id, answer)
-                    translate_print(message.chat.id, ENTER_CITY)
+                    if len(maybe_ans) == 0:
+                        translate_print(message.chat.id, 'ты победил!')
+                        del_cities(message.chat.id)
+                        return
+                    else:
+                        answer = choice(maybe_ans)
+                        bot.send_message(message.chat.id, answer)
+                        update_city(message.chat.id, user_city)
+                        update_city(message.chat.id, answer)
+                        translate_print(message.chat.id, ENTER_CITY)
             else:
                 raise SyntaxError
         else:
@@ -274,7 +283,7 @@ def cities_game(message):
             del_cities(message.chat.id)
             return
     except SyntaxError:
-        translate_print(message.chat.id, UNKNOWN_CITY)
+        translate_print(message.chat.id, UNKNOW_CITY)
 
     except MemoryError:
         translate_print(message.chat.id, CITY_USED)
@@ -284,6 +293,28 @@ def cities_game(message):
 
     except IndexError:
         translate_print(message.chat.id, GAME_CITY_MESSAGE)
+
+
+@bot.message_handler(commands='random')
+def randomaizer(message):
+    try:
+        fromm, to = (message.text.split()[1:])[0].split('-')
+        bot.send_message(message.chat.id, randint(int(fromm), int(to)))
+    except Exception:
+        translate_print(message.chat.id, RANDOM_MESSAGE)
+
+
+@bot.message_handler(content_types=['photo'])
+def message_post(message):
+    f_id = message.photo[-1].file_id
+    file_info = bot.get_file(f_id)
+    down_file = bot.download_file(file_info.file_path)
+    with open(f'images/{message.chat.id}.jpg', 'wb') as file:
+        file.write(down_file)
+    reader = easyocr.Reader(["ru", "en"])
+    result = reader.readtext(f'images/{message.chat.id}.jpg', detail=0, paragraph=True)
+    bot.send_message(message.chat.id, result)
+    os.remove(f'images/{message.chat.id}.jpg')
 
 
 bot.polling(none_stop=True, interval=0)
