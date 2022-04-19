@@ -19,12 +19,15 @@ list_of_timers = []
 
 
 def translate_print(id, text):
-    translator = Translator(from_lang='ru', to_lang=your_lang(id)[0])
-    if your_lang(id)[0] == 'ru':
-        bot.send_message(id, text)
-    else:
-        translation = translator.translate(text)
-        bot.send_message(id, translation)
+    try:
+        translator = Translator(from_lang='ru', to_lang=your_lang(id)[0])
+        if your_lang(id)[0] == 'ru':
+            bot.send_message(id, text)
+        else:
+            translation = translator.translate(text)
+            bot.send_message(id, translation)
+    except Exception as e:
+        bot.send_message(id, e)
 
 
 def id_user(id, name):
@@ -50,7 +53,7 @@ def start(message):
     keyboard.row('/help', '/language', '/search', '/res_quiz')
     keyboard.row('/translate', '/weather', '/set_timer', '/quiz')
     keyboard.row('/random', '/cities', '/calc',)
-    bot.send_message(message.chat.id, 'тут будет картинОЧКА', reply_markup=keyboard)
+    bot.send_photo(message.chat.id, photo=open(r'data/fiksik.png', 'rb'), reply_markup=keyboard)
     translate_print(message.chat.id, START_MESSAGE)
 
 
@@ -60,19 +63,19 @@ def helping(message):
 
 
 def choose_lang(id, lang):
-    with open('data/data_base.json', 'r+') as file:
-        your_lang = {}
+    with open('data/id_lang.json', 'r+') as file:
+        user_lang = {}
         data = json.loads(file.read())
-        your_lang[str(id)] = lang
-        data_lang = {**data, **your_lang}
+        user_lang[str(id)] = lang
+        data_lang = {**data, **user_lang}
         print(data_lang)
 
-    with open('data/data_base.json', 'w') as zapis:
+    with open('data/id_lang.json', 'w') as zapis:
         json.dump(data_lang, zapis, indent=4)
 
 
 def your_lang(id):
-    with open('data/data_base.json') as file:
+    with open('data/id_lang.json') as file:
         dict = json.load(file)
         values = dp.values(dict, str(id))
         return values
@@ -373,10 +376,11 @@ def write_score(id, mark):
         values = dp.values(data, str(id))
         if len(values) == 0:
             values.append(0)
+            values[0] += int(mark)
         else:
             values[0] += int(mark)
-            if values[0] < 0:
-                values[0] = 0
+        if values[0] < 0:
+            values[0] = 0
         score[str(id)] = values[0]
         data_score = {**data, **score}
 
