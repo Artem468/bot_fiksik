@@ -11,6 +11,8 @@ import json
 from config import *
 import easyocr
 import os
+import matplotlib.pyplot as plt
+import numpy as np
 
 
 bot = telebot.TeleBot(TOKEN)
@@ -458,6 +460,30 @@ def giving_score(message):
 @bot.message_handler(commands='my_id')
 def myid(message):
     bot.send_message(message.chat.id, message.chat.id)
+
+
+@bot.message_handler(commands='graph')
+def graphic(message):
+    try:
+        fig = plt.figure()
+        param = message.text.split()[1:]
+        func = param[0]
+        x_min = int(param[1])
+        x_max = int(param[2])
+        x_x = [i for i in range(x_min, x_max + 1, 1)]
+        y_y = []
+        for x in x_x:
+            func.replace("x", str(x))
+            y_y.append(eval(func))
+
+        plt.plot(x_x, y_y, 'r')
+        fig.savefig(f'images/{message.chat.id}.png')
+        place = open(f'images/{message.chat.id}.png', 'rb')
+        bot.send_photo(message.chat.id, place)
+        place.close()
+        os.remove(f'images/{message.chat.id}.png')
+    except Exception as e:
+        bot.send_message(message.chat.id, e)
 
 
 bot.polling(none_stop=True, interval=0)
