@@ -212,6 +212,9 @@ def timer(message):
                     if seconds >= 5:
                         text += f'{str(seconds)} секунд'
                 text.strip()
+                if your_lang(message.chat.id)[0] == 'en':
+                    gif = open("data/I'll be back.gif", 'rb')
+                    bot.send_video(message.chat.id, gif)
                 translate_print(message.chat.id, text)
                 now = datetime.datetime.now()
                 timer = datetime.timedelta(hours=hours, minutes=minutes, seconds=seconds)
@@ -222,8 +225,10 @@ def timer(message):
                         translate_print(message.chat.id, TIMER_IS_OVER)
                         del list_of_timers[time]
                         break
-    except Exception:
-        translate_print(message.chat.id, TIMER_MESSAGE)
+    except SystemError:
+        pass
+    # except Exception:
+    #     translate_print(message.chat.id, TIMER_MESSAGE)
 
 
 # добавлено по приколу  :D
