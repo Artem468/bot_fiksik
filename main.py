@@ -65,11 +65,12 @@ def start(message):
         telebot.types.BotCommand("/set_timer", "create a timer [beta]"),
         telebot.types.BotCommand("/quiz", "the quiz"),
         telebot.types.BotCommand("/res_quiz", "result from quiz"),
+        telebot.types.BotCommand("/graph", "create graph")
     ])
     keyboard = telebot.types.ReplyKeyboardMarkup(True)
     keyboard.row('/help', '/language', '/search', '/res_quiz')
     keyboard.row('/translate', '/weather', '/set_timer', '/quiz')
-    keyboard.row('/random', '/cities', '/calc')
+    keyboard.row('/random', '/cities', '/calc', '/graph')
     bot.send_photo(message.chat.id, photo=open(r'data/fiksik.png', 'rb'), reply_markup=keyboard)
     translate_print(message.chat.id, START_MESSAGE)
 
