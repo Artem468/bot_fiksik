@@ -495,7 +495,7 @@ def graphic(message):
         place.close()
         os.remove(f'images/{message.chat.id}.png')
     except Exception:
-        bot.send_message(message.chat.id, GRAPH_MESSAGE)
+        translate_print(message.chat.id, GRAPH_MESSAGE)
 
 
 bot.polling(none_stop=True, interval=0)
