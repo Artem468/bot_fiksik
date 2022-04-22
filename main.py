@@ -225,10 +225,8 @@ def timer(message):
                         translate_print(message.chat.id, TIMER_IS_OVER)
                         del list_of_timers[time]
                         break
-    except SystemError:
-        pass
-    # except Exception:
-    #     translate_print(message.chat.id, TIMER_MESSAGE)
+    except Exception:
+        translate_print(message.chat.id, TIMER_MESSAGE)
 
 
 # добавлено по приколу  :D
@@ -332,7 +330,7 @@ def cities_game(message):
 def randomaizer(message):
     try:
         if '—' in message.text.split()[1]:
-            fromm = message.text.split()[1][:message.text.split()[1].rfind('-') - 2]
+            fromm = message.text.split()[1][:message.text.split()[1].rfind('—')]
             to = '-' + message.text.split()[1][message.text.split()[1].rfind('—'):][1:]
         else:
             fromm, to = (message.text.split()[1:])[0].split('-')
