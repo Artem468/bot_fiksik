@@ -352,7 +352,7 @@ def text_from_image(message):
     down_file = bot.download_file(file_info.file_path)
     with open(f'images/{message.chat.id}.jpg', 'wb') as file:
         file.write(down_file)
-    reader = easyocr.Reader(['en', 'ru'])
+    reader = easyocr.Reader(['en', 'ru'], gpu=True)
     result = reader.readtext(f'images/{message.chat.id}.jpg', detail=0, paragraph=True)
     bot.send_message(message.chat.id, result)
     os.remove(f'images/{message.chat.id}.jpg')
@@ -476,6 +476,7 @@ def myid(message):
 @bot.message_handler(commands='graph')
 def graphic(message):
     try:
+
         fig = plt.figure()
         param = message.text.split()[1:]
         func = param[0]
