@@ -239,6 +239,7 @@ def siu(message):
     bot.send_video(message.chat.id, video)
 
 
+# Adds city to db
 def update_city(id, city):
     with open('data/data_game_cities.json', 'r+') as file:
         your_city = {}
@@ -256,6 +257,7 @@ def update_city(id, city):
         json.dump(data_city, zapis, indent=4)
 
 
+# Check used cities
 def use_city(id):
     with open('data/data_game_cities.json') as file:
         try:
@@ -266,6 +268,7 @@ def use_city(id):
             return []
 
 
+# Deletes used cities
 def del_cities(id):
     with open('data/data_game_cities.json', 'r+') as file:
         your_city = {}
@@ -355,6 +358,7 @@ def text_from_image(message):
     os.remove(f'images/{message.chat.id}.jpg')
 
 
+# Writes right answers
 def write_true_ans(id, ans):
     with open('data/quizs.json', 'r+') as file:
         true_answer = {}
@@ -367,6 +371,7 @@ def write_true_ans(id, ans):
         json.dump(data_ans, zapis, indent=4)
 
 
+# Checks if the answer is right
 def read_true_ans(id):
     with open('data/quizs.json') as file:
         dict = json.load(file)
@@ -374,6 +379,7 @@ def read_true_ans(id):
         return values
 
 
+# Main function of quiz
 @bot.message_handler(commands='quiz')
 def quiz_process(message):
     try:
@@ -391,6 +397,7 @@ def quiz_process(message):
         bot.send_message(message.chat.id, str(d))
 
 
+# + scores, if it's right and - scores, if it's wrong
 @bot.poll_answer_handler()
 def handle_poll_answer(pollAnswer):
     if pollAnswer.to_dict()['option_ids'] == read_true_ans(pollAnswer.to_dict()['user']['id']):
@@ -399,6 +406,7 @@ def handle_poll_answer(pollAnswer):
         write_score(pollAnswer.to_dict()['user']['id'], -1)
 
 
+# Gives scores
 def write_score(id, mark):
     with open('data/score_users.json', 'r+') as file:
         score = {}
@@ -418,6 +426,7 @@ def write_score(id, mark):
         json.dump(data_score, zapis, indent=4)
 
 
+# Sends scores
 @bot.message_handler(commands='res_quiz')
 def read_score(message):
     try:
@@ -446,6 +455,7 @@ def read_score(message):
         translate_print(message.chat.id, QUIZ_MESSAGE)
 
 
+# Gives scores to each player
 @bot.message_handler(commands='give_score')
 def giving_score(message):
     try:
@@ -463,6 +473,7 @@ def myid(message):
     bot.send_message(message.chat.id, message.chat.id)
 
 
+# Sends you a graph
 @bot.message_handler(commands='graph')
 def graphic(message):
     try:
