@@ -346,7 +346,7 @@ def text_from_image(message):
     down_file = bot.download_file(file_info.file_path)
     with open(f'images/{message.chat.id}.jpg', 'wb') as file:
         file.write(down_file)
-    reader = easyocr.Reader(['ru'])
+    reader = easyocr.Reader(['en', 'ru'])
     result = reader.readtext(f'images/{message.chat.id}.jpg', detail=0, paragraph=True)
     bot.send_message(message.chat.id, result)
     os.remove(f'images/{message.chat.id}.jpg')
