@@ -38,7 +38,6 @@ def id_user(id, name):
         data = json.loads(file.read())
         your_indif[str(id)] = name
         data_indif = {**data, **your_indif}
-        print(data_indif)
 
     with open('data/id_username.json', 'w') as zapis:
         json.dump(data_indif, zapis, indent=4)
@@ -86,7 +85,6 @@ def choose_lang(id, lang):
         data = json.loads(file.read())
         user_lang[str(id)] = lang
         data_lang = {**data, **user_lang}
-        print(data_lang)
 
     with open('data/id_lang.json', 'w') as zapis:
         json.dump(data_lang, zapis, indent=4)
@@ -345,6 +343,8 @@ def randomaizer(message):
         translate_print(message.chat.id, RANDOM_MESSAGE)
 
 
+# Sends you text from the photo, you've sent
+# !!!WARNING!!! It takes some time. It depends on strength of your CPU
 @bot.message_handler(content_types=['photo'])
 def text_from_image(message):
     f_id = message.photo[-1].file_id
@@ -365,7 +365,6 @@ def write_true_ans(id, ans):
         data = json.loads(file.read())
         true_answer[str(id)] = ans
         data_ans = {**data, **true_answer}
-        print(data_ans)
 
     with open('data/quizs.json', 'w') as zapis:
         json.dump(data_ans, zapis, indent=4)
@@ -495,7 +494,7 @@ def graphic(message):
         place.close()
         os.remove(f'images/{message.chat.id}.png')
     except Exception:
-        translate_print(message.chat.id, GRAPH_MESSAGE)
+        bot.send_message(message.chat.id, GRAPH_MESSAGE)
 
 
 bot.polling(none_stop=True, interval=0)
