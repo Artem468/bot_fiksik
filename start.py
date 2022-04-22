@@ -14,7 +14,7 @@ import os
 
 
 bot = telebot.TeleBot(TOKEN)
-list_of_languages = ['en', 'pl', 'fr', 'es', 'it', 'zh', 'ja', 'ko', 'ar', 'hi', 'pt', 'de', 'ru']
+list_of_languages = ['en', 'pl', 'fr', 'es', 'it', 'ja', 'ko', 'ar', 'hi', 'pt', 'de', 'ru']
 list_of_timers = []
 
 
@@ -45,14 +45,29 @@ def id_user(id, name):
 @bot.message_handler(commands=['start'])
 def start(message):
     try:
-        your = your_lang(message.chat.id)[0]
+        your_lang(message.chat.id)[0]
     except Exception:
         choose_lang(message.chat.id, 'ru')
         id_user(message.chat.id, message.chat.username)
+
+    bot.set_my_commands([
+        telebot.types.BotCommand("/start", "main menu"),
+        telebot.types.BotCommand("/help", "about bot"),
+        telebot.types.BotCommand("/language", "change language"),
+        telebot.types.BotCommand("/search", "search in wikipedia"),
+        telebot.types.BotCommand("/translate", "for translate some text"),
+        telebot.types.BotCommand("/weather", "show weather now"),
+        telebot.types.BotCommand("/random", "random number"),
+        telebot.types.BotCommand("/calc", "for calculate"),
+        telebot.types.BotCommand("/cities", "the city game"),
+        telebot.types.BotCommand("/set_timer", "create a timer [beta]"),
+        telebot.types.BotCommand("/quiz", "the quiz"),
+        telebot.types.BotCommand("/res_quiz", "result from quiz"),
+    ])
     keyboard = telebot.types.ReplyKeyboardMarkup(True)
     keyboard.row('/help', '/language', '/search', '/res_quiz')
     keyboard.row('/translate', '/weather', '/set_timer', '/quiz')
-    keyboard.row('/random', '/cities', '/calc',)
+    keyboard.row('/random', '/cities', '/calc')
     bot.send_photo(message.chat.id, photo=open(r'data/fiksik.png', 'rb'), reply_markup=keyboard)
     translate_print(message.chat.id, START_MESSAGE)
 
@@ -133,16 +148,20 @@ def tranlators(message):
 @bot.message_handler(commands=['weather'], content_types=['text'])
 def weather_now(message):
     try:
-        requests_weather = message.text.split()
-        response = requests.get(f"http://api.openweathermap.org/data/2.5/weather?q={requests_weather[1]},"
-                                f"{requests_weather[2]}&APPID=375945b5a4f84b8b46a5fd41b8d5f519",
+        requests_weather = message.text.split()[1:]
+        if len(requests_weather) <= 1:
+            raise Exception
+        response = requests.get(f"http://api.openweathermap.org/data/2.5/weather?q={' '.join(requests_weather[0:-1])},"
+                                f"{requests_weather[-1]}&APPID=375945b5a4f84b8b46a5fd41b8d5f519",
                                 params={'units': 'metric'})
-        ans = response.content.decode('UTF-8')
-        answer = ans.split(",")
+
+        ans = json.loads(response.content.decode('utf-8'))
         translator_for_cl = Translator(from_lang='en', to_lang=your_lang(message.chat.id)[0])
-        clouds = translator_for_cl.translate(answer[4][15:-1])
-        weather_atm = f'{clouds.capitalize()} \n{TEMPERATURE}: {answer[7][15:]} ' \
-                      f'\n{HUMIDITY}: {answer[12][11:]} \n{SPEED_WIND}: {answer[16][16:]} '
+        clouds = translator_for_cl.translate(ans['weather'][0]['description'])
+        weather_atm = f'{clouds.capitalize()} \n' \
+                      f'{TEMPERATURE}: {ans["main"]["temp"]} \n' \
+                      f'{HUMIDITY}: {ans["main"]["humidity"]} \n' \
+                      f'{SPEED_WIND}: {ans["wind"]["speed"]}'
         translate_print(message.chat.id, weather_atm)
     except Exception:
         translate_print(message.chat.id, WEATHER_MESSAGE)
@@ -207,6 +226,7 @@ def timer(message):
         translate_print(message.chat.id, TIMER_MESSAGE)
 
 
+# добавлено по приколу  :D
 @bot.message_handler(commands='siuuu')
 def siu(message):
     video = open('data/suiii.mp4', 'rb')
@@ -287,7 +307,7 @@ def cities_game(message):
             else:
                 raise SyntaxError
         else:
-            translate_print(message.chat.id, BYE_MESSAGE)
+            translate_print(message.chat.id, f"{BYE_MESSAGE} Правильно назвал - {len(use_city(message.chat.id)) // 2} городов")
             del_cities(message.chat.id)
             return
     except SyntaxError:
@@ -319,7 +339,7 @@ def text_from_image(message):
     down_file = bot.download_file(file_info.file_path)
     with open(f'images/{message.chat.id}.jpg', 'wb') as file:
         file.write(down_file)
-    reader = easyocr.Reader(list_of_languages)
+    reader = easyocr.Reader(['ru'])
     result = reader.readtext(f'images/{message.chat.id}.jpg', detail=0, paragraph=True)
     bot.send_message(message.chat.id, result)
     os.remove(f'images/{message.chat.id}.jpg')
@@ -390,27 +410,47 @@ def write_score(id, mark):
 
 @bot.message_handler(commands='res_quiz')
 def read_score(message):
-    with open('data/score_users.json') as file:
-        dict = json.load(file)
-        sorted_dict = {}
-        sorted_keys = sorted(dict, key=dict.get, reverse=True)
-        for w in sorted_keys:
-            sorted_dict[w] = dict[w]
+    try:
+        with open('data/score_users.json') as file:
+            dict = json.load(file)
+            sorted_dict = {}
+            sorted_keys = sorted(dict, key=dict.get, reverse=True)
+            for w in sorted_keys:
+                sorted_dict[w] = dict[w]
 
-        if len(sorted_dict) > 5:
-            number = 5
-        else:
-            number = len(sorted_dict)
+            if len(sorted_dict) > 5:
+                number = 5
+            else:
+                number = len(sorted_dict)
 
-    with open('data/id_username.json') as file:
-        id_and_name = json.load(file)
-        stroka = ''
-        for i in range(1, number + 1):
-            stroka += f'{i}. {dp.values(id_and_name, list(sorted_dict.keys())[i - 1])[0]}'\
-                      f' - {dp.values(sorted_dict, str(list(sorted_dict.keys())[i - 1]))[0]} \U0001F60E \n'
+        with open('data/id_username.json') as file:
+            id_and_name = json.load(file)
+            stroka = ''
+            list_of_emoji = ['\U0001F60E', '\U0001F973', '\U0001F929', '\U0001F9D0', '\U0001F92A']
+            for i in range(1, number + 1):
+                stroka += f'{i}. {dp.values(id_and_name, list(sorted_dict.keys())[i - 1])[0]}'\
+                          f' - {dp.values(sorted_dict, str(list(sorted_dict.keys())[i - 1]))[0]} {list_of_emoji[i - 1]} \n'
+            bot.send_message(message.chat.id, f"\u203C\uFE0F your score - "
+                                              f" {dp.values(sorted_dict, str(message.chat.id))[0]} \u203C\uFE0F \n \n{stroka}")
+    except Exception:
+        translate_print(message.chat.id, QUIZ_MESSAGE)
 
-        bot.send_message(message.chat.id, f"\u203C\uFE0F your score - "
-                                          f" {dp.values(sorted_dict, str(message.chat.id))[0]} \u203C\uFE0F \n \n{stroka}")
+
+@bot.message_handler(commands='give_score')
+def giving_score(message):
+    try:
+        if message.chat.id in [932288986, 1985628010]:
+            person, score = message.text.split()[1:]
+            write_score(person, score)
+            translate_print(message.chat.id, 'Выдано успешно')
+    except Exception:
+        translate_print(message.chat.id, 'У вас не достаточно прав для использования данной функции \n'
+                                         ' или что то пошло не так')
+
+
+@bot.message_handler(commands='my_id')
+def myid(message):
+    bot.send_message(message.chat.id, message.chat.id)
 
 
 bot.polling(none_stop=True, interval=0)
