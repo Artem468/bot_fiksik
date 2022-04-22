@@ -331,7 +331,11 @@ def cities_game(message):
 @bot.message_handler(commands='random')
 def randomaizer(message):
     try:
-        fromm, to = (message.text.split()[1:])[0].split('-')
+        if '—' in message.text.split()[1]:
+            fromm = message.text.split()[1][:message.text.split()[1].rfind('-') - 2]
+            to = '-' + message.text.split()[1][message.text.split()[1].rfind('—'):][1:]
+        else:
+            fromm, to = (message.text.split()[1:])[0].split('-')
         bot.send_message(message.chat.id, str(randint(int(fromm), int(to))))
     except Exception:
         translate_print(message.chat.id, RANDOM_MESSAGE)
