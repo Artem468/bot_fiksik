@@ -1,0 +1,12 @@
+PyTelegramBotApi
+wikipedia
+math
+translate
+datetime
+requests
+dpath.util
+random
+json
+easyocr
+os
+matplotlib.pyplot
